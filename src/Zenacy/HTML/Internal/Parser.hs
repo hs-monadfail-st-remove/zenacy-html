@@ -2075,7 +2075,8 @@ doModeAfterHead p@Parser {..} t =
       | elem x [ "base", "basefont", "bgsound", "link", "meta", "noframes",
                  "script", "style", "template", "title", "head" ] -> do
           parseError p (Just t) "AfterHead bad start tag"
-          Just h <- getHeadID p
+          mh <- getHeadID p
+          let Just h = mh
           elementStackPush p h
           doModeInHead p t
           elementStackRemove p h
@@ -2113,7 +2114,8 @@ doModeInBody p@Parser {..} t =
     TStart { tStartName = x@"html" } -> do
       warn x
       unlessM (elementStackHasTemplate p) $ do
-        Just i <- lastNodeID p
+        mi <- lastNodeID p
+        let Just i = mi
         modifyDOM p $ domAttrMerge i $ Seq.fromList $
           map (\(TAttr n v s) -> DOMAttr n v s) $ tStartAttr t
     TStart { tStartName = x }
@@ -2128,7 +2130,8 @@ doModeInBody p@Parser {..} t =
         ||^ liftA (==1) (elementStackSize p)
         ||^ (elementStackHasTemplate p)) $ do
           frameSetNotOK p
-          Just i <- listToMaybe . drop 1 . reverse <$> elementStack p
+          mi <- listToMaybe . drop 1 . reverse <$> elementStack p
+          let Just i = mi
           modifyDOM p $ domAttrMerge i $ Seq.fromList $
             map (\(TAttr n v s) -> DOMAttr n v s) $ tStartAttr t
     TStart { tStartName = x@"frameset" } -> do
@@ -2136,7 +2139,8 @@ doModeInBody p@Parser {..} t =
       unlessM (liftA (==1) (elementStackSize p)
         ||^ notM (elementStackHasBody p)
         ||^ notM (rref parserFrameSetOK)) $ do
-          Just n <- listToMaybe . drop 1 . reverse <$> elementStackNodes p
+          mn <- listToMaybe . drop 1 . reverse <$> elementStackNodes p
+          let Just n = mn
           modifyDOM p $ domRemoveChild (domNodeParent n) $ domNodeID n
           elementStackPopWhile p $ \n ->
             domNodeType n /= domMakeTypeHTML "html"
